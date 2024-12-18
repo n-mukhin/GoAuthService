@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"example.com/authservice/internal/config"
 	"example.com/authservice/internal/db"
@@ -12,7 +13,14 @@ import (
 	"example.com/authservice/internal/repository"
 	"example.com/authservice/internal/service"
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
+
+func init() {
+	zerolog.TimeFieldFormat = time.RFC3339
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
 
 func main() {
 	cfg := config.LoadConfig()
@@ -20,7 +28,7 @@ func main() {
 	ctx := context.Background()
 	conn, err := db.Connect(ctx, cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
 	if err != nil {
-		log.Fatalf("failed to connect to db: %v", err)
+		log.Fatal().Err(err).Msg("failed to connect to the database")
 	}
 	defer conn.Close(ctx)
 
@@ -37,8 +45,8 @@ func main() {
 	r.HandleFunc("/auth/token", authHandler.IssueTokens).Methods("GET")
 	r.HandleFunc("/auth/refresh", authHandler.RefreshTokens).Methods("POST")
 
-	log.Printf("Starting server on %s", cfg.ServerAddr)
+	log.Info().Msgf("Starting server on %s", cfg.ServerAddr)
 	if err := http.ListenAndServe(cfg.ServerAddr, r); err != nil {
-		log.Fatalf("server error: %v", err)
+		log.Fatal().Err(err).Msg("server encountered an error")
 	}
 }
