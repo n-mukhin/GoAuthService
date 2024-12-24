@@ -51,8 +51,8 @@
 1. **Склонируйте репозиторий:**
 
     ```bash
-    git clone https://github.com/your-username/authservice.git
-    cd authservice
+    git clone https://github.com/n-mukhin/GoAuthService.git
+    cd GoAuthService
     ```
 
 2. **Запустите сервис:**
